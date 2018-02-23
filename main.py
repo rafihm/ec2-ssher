@@ -6,10 +6,9 @@ import sys
 
 
 def get_name(instance):
-	for tag in instance['Tags']:
-			if tag['Key'] == 'Name':
-				return tag['Value']
-
+        for tag in instance['Tags']:
+                        if tag['Key'] == 'Name':
+                                            return tag['Value']
 
 def ssh_instance(ip_addr, key_name):
 	cmd = "ssh -i "+cfg.KEY_PATH+key_name+".pem "+"ec2-user@"+ip_addr
@@ -24,7 +23,7 @@ def show_menu():
 	else:
 		for i,instance in enumerate(runningInstances,1):
 			print("{}. {} - {}".format(i, instance['instanceId'], instance['instanceName']))
-	print ("\nc. Change region \nr. Refresh list \ne. Exit")
+	print ("\nc. Change region \ne. Exit")
 	return raw_input("Choice:")
 
 
@@ -35,14 +34,12 @@ def check_choice(choice):
 		elif choice == 'e':
 			print("Exiting program")
 			sys.exit()
-		elif choice == 'r':
-			return
 
 		else:
 			choice = int(choice)
 			ip_addr = runningInstances[choice-1]['publicIp']
 			print ip_addr
-			key_name= runningInstances[choice-1]['keyName']
+                        key_name= runningInstances[choice-1]['keyName']
 			print key_name
 			ssh_instance(ip_addr, key_name)
 	except (IndexError, ValueError):
@@ -75,12 +72,23 @@ def get_running_instances():
 	runningInstances = []
 	for reservation in response['Reservations']:
 		for instance in reservation['Instances']:
-			tempinstance = {
-			'instanceId': str(instance['InstanceId']),
-			'instanceName': str(get_name(instance)),
-			'publicIp': str(instance['PublicIpAddress']),
-			'keyName': str(instance['KeyName'])
-			}
+		        instanceId = str(instance['InstanceId'])
+                        try:
+                            instanceName = str(get_name(instance))
+                        except:
+                            instanceName = "NoName"
+                        publicIp = str(instance['PublicIpAddress'])
+                        try:
+                            KeyName = str(instance['KeyName'])
+                        except:
+                            KeyName = 'noKeyPresent'
+
+                        tempinstance = {
+			'instanceId': instanceId,
+			'instanceName': instanceName,
+			'publicIp': publicIp,
+                        'keyName': KeyName
+                        }
 			runningInstances.append(tempinstance.copy())
 	return runningInstances
 
@@ -92,5 +100,3 @@ if __name__ == "__main__":
 		runningInstances = get_running_instances()
 		choice = show_menu().lower()
 		check_choice(choice)
-
-
